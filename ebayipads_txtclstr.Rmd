@@ -136,7 +136,7 @@ txtterms: -> top_n = c(10)
  [7] "D.T.ipad"    "D.T.great"   "D.T.work"    "D.T.excel"
 
 txtclstr:
-    All.X.no.rnorm.rf: Leaderboard: 0.79363 
+    All.X.no.rnorm.rf: Leaderboard: 0.79363 -> 0.79573
         newobs_tbl=[N=537, Y=261]; submit_filename=txtclstr_Final_rf_submit
         OOB_conf_mtrx=[YN=104, NY=61]=165; max.Accuracy.OOB=0.8135593
             opt.prob.threshold.OOB=0.5
@@ -482,8 +482,6 @@ glb_txt_munge_filenames_pfx <- "ebay_mytxt_"
 glb_append_stop_words <- list()
 # Remember to use unstemmed words
 #orderBy(~ -cor.y.abs, subset(glb_feats_df, grepl("[HSA]\\.T\\.", id) & !is.na(cor.high.X)))
-#dsp_obs(Headline.contains="polit")
-#subset(glb_allobs_df, H.T.compani > 0)[, c("UniqueID", "Headline", "H.T.compani")]
 glb_append_stop_words[["descr.my"]] <- c(NULL
                                         # freq = 1 
                                         ,"511","825","975"
@@ -753,6 +751,67 @@ glb_exclude_vars_as_features <- union(glb_exclude_vars_as_features, glb_id_var)
 
 glb_allobs_df <- orderBy(reformulate(glb_id_var), glb_allobs_df)
 glb_trnobs_df <- glb_newobs_df <- NULL
+
+# For Tableau
+write.csv(glb_allobs_df, "data/eBayiPadAll.csv", row.names=FALSE)
+
+#stop(here")
+glb_drop_obs <- c(
+                11234, #sold=0; 2 other dups(10306, 11503) are sold=1
+                11844, #sold=0; 3 other dups(11721, 11738, 11812) are sold=1
+                  NULL)
+glb_allobs_df <- glb_allobs_df[!glb_allobs_df[, glb_id_var] %in% glb_drop_obs, ]
+
+# Check for duplicates by all features
+require(gdata)
+#print(names(glb_allobs_df))
+dup_allobs_df <- glb_allobs_df[duplicated2(subset(glb_allobs_df, 
+                                                  select=-c(UniqueID, sold, .src))), ]
+dup_allobs_df <- orderBy(~productline+description+startprice+biddable, dup_allobs_df)
+print(sprintf("Found %d duplicates by all features:", nrow(dup_allobs_df)))
+myprint_df(dup_allobs_df)
+
+# print(dup_allobs_df[, c(glb_id_var, glb_rsp_var_raw, 
+#                          "description", "startprice", "biddable")])
+# write.csv(dup_allobs_df[, c("UniqueID"), FALSE], "ebayipads_dups.csv", row.names=FALSE)
+
+dupobs_df <- tidyr::unite(dup_allobs_df, "allfeats", -c(sold, UniqueID, .src), sep="#")
+# dupobs_df <- dplyr::group_by(dupobs_df, allfeats)
+# dupobs_df <- dupobs_df[, "UniqueID", FALSE]
+# dupobs_df <- ungroup(dupobs_df)
+# 
+# dupobs_df$.rownames <- row.names(dupobs_df)
+grpobs_df <- data.frame(allfeats=unique(dupobs_df[, "allfeats"]))
+grpobs_df$.grpid <- row.names(grpobs_df)
+dupobs_df <- merge(dupobs_df, grpobs_df)
+
+# dupobs_tbl <- table(dupobs_df$.grpid)
+# print(max(dupobs_tbl))
+# print(dupobs_tbl[which.max(dupobs_tbl)])
+# print(dupobs_df[dupobs_df$.grpid == names(dupobs_tbl[which.max(dupobs_tbl)]), ])
+# print(dupobs_df[dupobs_df$.grpid == 106, ])
+# for (grpid in c(9, 17, 31, 36, 53))
+#     print(dupobs_df[dupobs_df$.grpid == grpid, ])
+dupgrps_df <- as.data.frame(table(dupobs_df$.grpid, dupobs_df$sold, useNA="ifany"))
+names(dupgrps_df)[c(1,2)] <- c(".grpid", "sold")
+dupgrps_df$.grpid <- as.numeric(as.character(dupgrps_df$.grpid))
+dupgrps_df <- tidyr::spread(dupgrps_df, sold, Freq)
+names(dupgrps_df)[-1] <- paste("sold", names(dupgrps_df)[-1], sep=".")
+dupgrps_df$.freq <- sapply(1:nrow(dupgrps_df), function(row) sum(dupgrps_df[row, -1]))
+myprint_df(orderBy(~-.freq, dupgrps_df))
+
+print("sold Conflicts:")
+print(subset(dupgrps_df, (sold.0 > 0) & (sold.1 > 0)))
+#dupobs_df[dupobs_df$.grpid == 4, ]
+if (nrow(subset(dupgrps_df, (sold.0 > 0) & (sold.1 > 0) & (sold.0 != sold.1))) > 0)
+    stop("Duplicate conflicts are resolvable")
+
+print("Test & Train Groups:")
+print(subset(dupgrps_df, (sold.NA > 0)))
+
+glb_allobs_df <- merge(glb_allobs_df, dupobs_df[, c(glb_id_var, ".grpid")], 
+                       by=glb_id_var, all.x=TRUE)
+glb_exclude_vars_as_features <- c(".grpid", glb_exclude_vars_as_features)
 
 glb_chunks_df <- myadd_chunk(glb_chunks_df, "inspect.data", major.inc=TRUE)
 ```
@@ -1132,7 +1191,7 @@ for (new_feat in glb_derive_vars) {
 #stop(here")
 #hex_vctr <- c("\n", "\211", "\235", "\317", "\333")
 hex_regex <- paste0(c("\n", "\211", "\235", "\317", "\333"), collapse="|")
-for (row_pos in c(178, 948, 1904, 2157, 2210)) {
+for (row_pos in c(178, 948, 1514, 1904, 2157, 2210)) {
 #     tmp_str <- unlist(strsplit(glb_allobs_df[row_pos, "descr.my"], ""))
 #     glb_allobs_df[row_pos, "descr.my"] <- paste0(tmp_str[!tmp_str %in% hex_vctr],
 #                                                          collapse="")
@@ -3195,6 +3254,20 @@ if (glb_is_classification && glb_is_binomial) {
 #     print(table(submit_df$BDscience, useNA = "ifany"))
 } else submit_df <- glb_newobs_df[, c(glb_id_var, 
                                    paste0(glb_rsp_var_out, glb_fin_mdl_id))]
+
+rsp_var_out <- paste0(glb_rsp_var_out, glb_fin_mdl_id)
+tmp_newobs_df <- subset(glb_newobs_df[, c(glb_id_var, ".grpid", rsp_var_out)],
+                        !is.na(.grpid))
+tmp_newobs_df <- merge(tmp_newobs_df, dupgrps_df, by=".grpid", all.x=TRUE)
+tmp_newobs_df$.err <- ((tmp_newobs_df[, rsp_var_out] == "Y") & (tmp_newobs_df$sold.0 > 0) |
+                       (tmp_newobs_df[, rsp_var_out] == "N") & (tmp_newobs_df$sold.1 > 0))
+tmp_newobs_df <- orderBy(~UniqueID, subset(tmp_newobs_df, .err == TRUE))
+print("Prediction errors in duplicates:")
+print(tmp_newobs_df)
+if (nrow(tmp_newobs_df) > 0)
+    stop("check Prediction errors in duplicates")
+#print(dupobs_df[dupobs_df$.grpid == 26, ])
+
 submit_fname <- paste0(gsub(".", "_", paste0(glb_out_pfx, glb_fin_mdl_id), fixed=TRUE), 
                     "_submit.csv")
 write.csv(submit_df, submit_fname, quote=FALSE, row.names=FALSE)
