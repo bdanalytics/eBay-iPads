@@ -28,24 +28,8 @@ prdline.my          .n.Tst .n.OOB .freqRatio.Tst .freqRatio.OOB
 5            iPad 5     NA      1             NA    0.001121076
 
 
-## besid    2.275117   besid    1  67
-## 128      1.263954     128    1   2
-exhibit   2.275117 exhibit    1 188
-face      1.421948    face    1 193
-emblem    1.263954  emblem    1 176
-rather   1.263954  rather    1 420
+128      1.263954     128    1   2
+360     1.263954     360    1   9
 511       1.263954      511    1  12
-oem     2.275117    oem    1 355
-refund  1.421948 refund    1 434
-close       1.895930      close    1 116
-photograph  1.421948 photograph    1 386
-forgot      1.263954     forgot    1 210
-immacul 3.791861 immacul    1 260
-school  3.791861  school    1 453
-run     2.937186     run    3 451
-forward 1.421948 forward    1 211
-TfIdf    term freq pos
-remot   1.2639536   remot    1 435
-ringer  1.2639536  ringer    1 448
-septemb 1.2639536 septemb    1 466
-site    1.2639536    site    1 485
+975   1.1375583   975    1  15
+79in  1.0341439  79in    1  14

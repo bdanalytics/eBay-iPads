@@ -418,7 +418,8 @@ glb_derive_lst[["descr.my"]] <- list(
         mod_raw <- gsub("(\\w)(\\*|,|-|/)(\\w)", "\\1\\2 \\3", mod_raw);
         
         mod_raw <- gsub("8\\.25", "825", mod_raw, ignore.case=TRUE);  
-        mod_raw <- gsub(" 10\\.SCREEN ", " 10\\. SCREEN ", mod_raw, ignore.case=TRUE); 
+        mod_raw <- gsub(" 10\\.SCREEN ", " 10\\. SCREEN ", mod_raw, ignore.case=TRUE);
+        mod_raw <- gsub(" 128 gb ", " 128gb ", mod_raw, ignore.case=TRUE);  
         mod_raw <- gsub(" actuuly ", " actual ", mod_raw, ignore.case=TRUE);
         mod_raw <- gsub(" Apple care ", " Applecare ", mod_raw, ignore.case=TRUE);        
         mod_raw <- gsub(" ans ", " and ", mod_raw, ignore.case=TRUE);
@@ -490,6 +491,7 @@ glb_derive_lst[["descr.my"]] <- list(
         mod_raw <- gsub("shrink wrap", "shrinkwrap", mod_raw, ignore.case=TRUE);        
         mod_raw <- gsub(" sides ", " side ", mod_raw, ignore.case=TRUE);
         mod_raw <- gsub(" skinned,", " skin,", mod_raw, ignore.case=TRUE);
+        mod_raw <- gsub("\\bspace (grey|gray)", "spacegray", mod_raw, ignore.case=TRUE); 
         mod_raw <- gsub(" spec ", " speck ", mod_raw, ignore.case=TRUE);        
         mod_raw <- gsub("^somescratches ", "some scratches ", mod_raw, ignore.case=TRUE);  
         mod_raw <- gsub(" Sticker ", " Stickers ", mod_raw, ignore.case=TRUE);
@@ -570,7 +572,7 @@ glb_append_stop_words[["descr.my"]] <- c(NULL
                                         ,"2nd"
                                         ,"a1314","a1430","a1432"
     ,"abused","across","adaptor","add","antenna","anti","anyone", "area","arizona","att"
-                                    ,"beginning","bidder","bonus","boot","bound","bruises"
+                        ,"beginning","besides","bidder","bonus","boot","bound","bruises"
     ,"changed","changing","chrome"
         ,"confidence","considerable","consumer","contents","control","cream"
     ,"date","daughter","decent","defender","defense","degree","depicted"
