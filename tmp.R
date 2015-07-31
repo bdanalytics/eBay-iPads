@@ -27,9 +27,26 @@ prdline.my          .n.Tst .n.OOB .freqRatio.Tst .freqRatio.OOB
 11 iPad mini Retina     NA      4             NA    0.004484305
 5            iPad 5     NA      1             NA    0.001121076
 
+as.numeric(performance(prediction(
+    glb_OOBobs_df[, "sold.fctr.predict.All.Interact.X.gbm.prob"],
+    glb_OOBobs_df[, glb_rsp_var]), "auc")@y.values)
 
-128      1.263954     128    1   2
-360     1.263954     360    1   9
-511       1.263954      511    1  12
-975   1.1375583   975    1  15
-79in  1.0341439  79in    1  14
+print(myplot_prediction_classification(
+    df=subset(glb_OOBobs_df, (prdl.my.descr.fctr == "iPadAir#0") & (biddable == 0)),
+    feat_x="startprice.diff",
+    feat_y="idseq.my",
+    rsp_var=glb_rsp_var,
+    rsp_var_out=paste0(glb_rsp_var_out, glb_sel_mdl_id),
+    id_vars=glb_id_var,
+    prob_threshold=0.5)
+      #               + geom_hline(yintercept=<divider_val>, linetype = "dotted")
+)
+require(GGally)
+ggparcoord(data=subset(glb_OOBobs_df, (prdl.my.descr.fctr == "iPadAir#0") & (biddable == 0)),
+           columns = 1:4,
+           groupColumn = paste0(glb_rsp_var_out, glb_sel_mdl_id, ".accurate"))
+grep(paste0(glb_rsp_var_out, glb_sel_mdl_id, ".accurate"), names(glb_allobs_df), fixed=TRUE)
+df=subset(glb_OOBobs_df, (prdl.my.descr.fctr == "iPadAir#0") & (biddable == 0))
+ggparcoord(data=df,
+           columns = 28:32,
+           groupColumn = 175)
